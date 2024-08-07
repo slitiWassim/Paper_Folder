@@ -66,19 +66,20 @@ class ASTNet(nn.Module):
         x2=x2.view(x2.shape[0], -1, x2.shape[-2], x2.shape[-1])
 
 
-        x8 = self.conv_x8(x2)
-        x2 = self.conv_x2(x1)
-        x0 = self.conv_x0(x0)
+        x8 = self.attn8(self.conv_x8(x2))
+        #x2 = self.attn4(self.conv_x2(x1))
+        #x0 = self.attn2(self.conv_x0(x0))
+      
         
         left = self.tsm_left(x8)
         x8 = x8 + left
+        
         x = self.up8(x8)
-        x = self.attn8(x)
+        
         x = self.up4(torch.cat([x2, x], dim=1))
-        x = self.attn4(x)
 
         x = self.up2(torch.cat([x0, x], dim=1))
-        x = self.attn2(x)
+      
 
 
         return self.final(x)
