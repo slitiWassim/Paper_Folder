@@ -67,8 +67,8 @@ class ASTNet(nn.Module):
 
 
         x8 = self.attn8(self.conv_x8(x2))
-        #x2 = self.attn4(self.conv_x2(x1))
-        #x0 = self.attn2(self.conv_x0(x0))
+        x2 = self.conv_x2(x1)
+        x0 = self.conv_x0(x0)
       
         
         left = self.tsm_left(x8)
