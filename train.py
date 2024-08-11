@@ -12,7 +12,7 @@ from utils import train_util, log_util, loss_util, optimizer_util, anomaly_util
 import models as models
 from models.wresnet1024_cattn_tsm import ASTNet as get_net1
 from models.wresnet2048_multiscale_cattn_tsmplus_layer6_v1 import ASTNet as get_net2
-import datasets
+import Datasets
 
 
 def parse_args():
@@ -77,9 +77,9 @@ def main():
 
     scheduler = optimizer_util.get_scheduler(config, optimizer)
 
-    train_dataset = eval('datasets.get_data')(config)
+    train_dataset = eval('Datasets.get_data')(config)
     if(args.pseudo):
-        train_dataset_jump=eval('datasets.get_jump_data')(config)
+        train_dataset_jump=eval('Datasets.get_jump_data')(config)
         train_loader_jump = torch.utils.data.DataLoader(
             train_dataset_jump,
             batch_size=config.TRAIN.BATCH_SIZE_PER_GPU * len(gpus),
@@ -89,7 +89,7 @@ def main():
             drop_last=True
         )
     if(args.test):
-        test_dataset = eval('datasets.get_test_data')(config)
+        test_dataset = eval('Datasets.get_test_data')(config)
         BATCH_SIZE_PER_GPU_TEST=1
         test_loader = torch.utils.data.DataLoader(
             test_dataset,
