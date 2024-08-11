@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from models.wider_resnet import wresnet ,Efficientnet_1024,Efficientnet_X3D
 from models.basic_modules import ConvBnRelu, ConvTransposeBnRelu, initialize_weights
+from models.QGAttention import Attention_QGA
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,9 @@ class ASTNet(nn.Module):
 
         self.tsm_left = TemporalShift(n_segment=4, n_div=16, direction='left')
  
-        self.attn8 = ChannelAttention(channels[3])
-        self.attn4 = ChannelAttention(channels[3])
-        self.attn2 = ChannelAttention(channels[3])
+        self.attn8 = Attention_QGA(embed_dim=48)
+        #self.attn4 = Attention_QGA(embed_dim=12)
+        #self.attn2 = Attention_QGA(embed_dim=24)
 
         self.final = nn.Sequential(
             ConvBnRelu(channels[3], channels[3], kernel_size=1, padding=0),
@@ -50,7 +51,8 @@ class ASTNet(nn.Module):
 
         initialize_weights(self.conv_x0, self.conv_x2, self.conv_x8)
         initialize_weights(self.up2, self.up4, self.up8)
-        initialize_weights(self.attn2, self.attn4, self.attn8)
+        #initialize_weights(self.attn2, self.attn4, self.attn8)
+        initialize_weights(self.attn8)
         initialize_weights(self.final)
 
     def forward(self, x):
@@ -66,19 +68,19 @@ class ASTNet(nn.Module):
         x2=x2.view(x2.shape[0], -1, x2.shape[-2], x2.shape[-1])
 
 
-        x8 = self.conv_x8(x2)
+        x8 = self.attn8(self.conv_x8(x2))
         x2 = self.conv_x2(x1)
         x0 = self.conv_x0(x0)
         
         left = self.tsm_left(x8)
         x8 = x8 + left
         x = self.up8(x8)
-        x = self.attn8(x)
+        #x = self.attn8(x)
         x = self.up4(torch.cat([x2, x], dim=1))
-        x = self.attn4(x)
+        #x = self.attn4(x)
 
         x = self.up2(torch.cat([x0, x], dim=1))
-        x = self.attn2(x)
+        #x = self.attn2(x)
 
 
         return self.final(x)
